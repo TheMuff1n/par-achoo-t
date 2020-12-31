@@ -4,7 +4,8 @@ main.o
 
 # Objektdateien fuer Tests
 _TOBJS +=  \
-test/test.o
+test/test.o  \
+main/bt_driver.o
 
 ################################################################################
 # Automatically-generated file. Do not edit!

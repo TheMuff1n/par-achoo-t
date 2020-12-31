@@ -1,0 +1,4 @@
+.vscode/
+AtmelStart.*
+AtmelTest.*
+gcc/src/

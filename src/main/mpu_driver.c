@@ -1,5 +1,6 @@
 #include "mpu_driver.h"
 #include "i2c_driver.h"
+#include <avr/interrupt.h>
 
 #define MPU6050_ADR 0x68
 
@@ -17,11 +18,11 @@ uint8_t mpu_init(void)
     return 1;
 }
 
-uint8_t mpu_get_accel(uint16_t *ax, uint16_t *ay, uint16_t *az)
+uint8_t mpu_get_accel(int16_t *ax, int16_t *ay, int16_t *az)
 {
     uint8_t data[6];
     i2c_read_register(MPU6050_ADR, 0x3B, 6, data);
-    *ax = (((uint16_t)data[5]) << 8) | data[4];
-    *ay = (((uint16_t)data[3]) << 8) | data[2];
-    *az = (((uint16_t)data[1]) << 8) | data[0];
+    *ax = (((int16_t)data[5]) << 8) | data[4];
+    *ay = (((int16_t)data[3]) << 8) | data[2];
+    *az = (((int16_t)data[1]) << 8) | data[0];
 }

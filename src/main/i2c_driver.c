@@ -58,7 +58,7 @@ uint8_t i2c_read(uint8_t address, uint8_t len, uint8_t *data)
         ;
     if ((TWSR & 0xF8) != TW_MR_DATA_NACK)
         return 0;
-    *data = TWDR;
+    data[0] = TWDR;
     TWCR = _BV(TWINT) | _BV(TWSTO);
 
     return 1;

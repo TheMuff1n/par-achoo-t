@@ -1,23 +1,38 @@
 #include "bt_driver.h"
 #include "mpu_driver.h"
+#include "baro_driver.h"
 #include <util/delay.h>
 
 void int_to_str(int16_t i, uint8_t *str);
 
 uint8_t msg[BT_RMSG_LEN > BT_SMSG_LEN ? BT_RMSG_LEN : BT_SMSG_LEN];
 int16_t ax, ay, az;
+int32_t temp;
 
 int main(void)
 {
     /* Testprogramm */
     bt_init();
-    mpu_init();
+    // mpu_init();
+    baro_init();
+
+    DDRB |= _BV(PB5);
+    PORTB &= ~_BV(PB5);
 
     sei();
 
     while (1)
     {
-        mpu_get_accel(&ax, &ay, &az);
+        if (!baro_temp(&temp))
+            PORTB |= _BV(PB5);
+
+        int_to_str((int16_t)temp, msg);
+        msg[6] = '\n';
+        while (!(bt_send(msg)))
+            ;
+        _delay_ms(2000);
+
+        /*mpu_get_accel(&ax, &ay, &az);
 
         int_to_str(ax, msg);
         while (!(bt_send(msg)))
@@ -29,7 +44,7 @@ int main(void)
         msg[5] = '\n';
         while (!(bt_send(msg)))
             ;
-        _delay_ms(50);
+        _delay_ms(50);*/
     }
 }
 

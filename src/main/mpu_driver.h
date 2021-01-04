@@ -6,4 +6,4 @@
 uint8_t mpu_init(void);
 uint8_t mpu_get_accel(int16_t *ax, int16_t *ay, int16_t *az);
 
-#endif
+#endif /* MPU_DRIVER_H_ */

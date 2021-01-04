@@ -1,6 +1,6 @@
 #include "bt_driver.h"
 #include "mpu_driver.h"
-#include <avr/delay.h>
+#include <util/delay.h>
 
 void int_to_str(int16_t i, uint8_t *str);
 
@@ -12,13 +12,13 @@ int main(void)
     /* Testprogramm */
     bt_init();
     mpu_init();
-    DDRB |= _BV(PB5);
-    PORTB &= ~_BV(PB5);
+
     sei();
 
     while (1)
     {
         mpu_get_accel(&ax, &ay, &az);
+
         int_to_str(ax, msg);
         while (!(bt_send(msg)))
             ;
@@ -33,6 +33,11 @@ int main(void)
     }
 }
 
+/**
+ * Konvertiert einen vorzeichenbehafteten Integer in einen String
+ * @param i Zu konvertierender Integer
+ * @param str Ausgabearray der Laenge 7
+ **/
 void int_to_str(int16_t i, uint8_t *str)
 {
     uint8_t idx, negative = 0;

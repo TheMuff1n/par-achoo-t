@@ -1,34 +1,60 @@
+/**
+ * Treiber fuer I2C-Kommunikation
+ * Neben grundlegenen Schreib- und Leseoperationen auch Funktionen fuer
+ * Operationen auf Registern wie auf vielen I2C-Geraten ueblich
+ * 
+ * Getestet mit Arduino Nano (ATmega328P)
+ **/
+
 #include "i2c_driver.h"
+#include <compat/twi.h>
 
-void i2c_end(void)
+/**
+ * Startet Schreioperation an gegebene Adresse
+ * @param address I2C-Zieladresse
+ * @return Bei Erfolg 1, sonst 0
+ **/
+uint8_t i2c_begin_write(uint8_t address)
 {
-    TWCR = _BV(TWINT) | _BV(TWEN) | _BV(TWSTO);
-}
-
-uint8_t i2c_write(uint8_t data)
-{
-    // Daten in Register laden und senden
-    TWDR = data;
-    TWCR = _BV(TWINT) | _BV(TWEN);
-    // Warten bis fertig
-    while (!(TWCR & _BV(TWINT)))
-        ;
-    // Bei Fehler falsch zurueckgeben
-    if ((TWSR & 0xF8) != TW_MT_DATA_ACK)
-        return 0;
-    return 1;
-}
-
-uint8_t i2c_read(uint8_t address, uint8_t len, uint8_t *data)
-{
-    // Request START
+    // Startbedingung senden
     TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+    // Auf Abschluss warten
     while (!(TWCR & _BV(TWINT)))
         ;
+    // Auf Erfolg pruefen
     if ((TWSR & 0xF8) != TW_START)
         return 0;
 
-    // Send address
+    // Zieladresse senden
+    TWDR = address << 1;
+    TWCR = _BV(TWINT) | _BV(TWEN);
+    while (!(TWCR & _BV(TWINT)))
+        ;
+    if ((TWSR & 0xF8) != TW_MT_SLA_ACK)
+        return 0;
+
+    return 1;
+}
+
+/**
+ * Liest eine Anzahl von Bytes von gegebener Adresse
+ * @param address I2C-Zieladresse
+ * @param len Anzahl zu lesender Bytes
+ * @param data Array fuer gelesene Daten
+ * @return Bei Erfolg 1, sonst 0
+ **/
+uint8_t i2c_read(uint8_t address, uint8_t len, uint8_t *data)
+{
+    // Startbedingung senden
+    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+    // Auf Abschluss warten
+    while (!(TWCR & _BV(TWINT)))
+        ;
+    // Auf Erfolg pruefen
+    if ((TWSR & 0xF8) != TW_START)
+        return 0;
+
+    // Zieladresse senden
     TWDR = (address << 1) | 1;
     TWCR = _BV(TWINT) | _BV(TWEN);
     while (!(TWCR & _BV(TWINT)))
@@ -36,11 +62,11 @@ uint8_t i2c_read(uint8_t address, uint8_t len, uint8_t *data)
     if ((TWSR & 0xF8) != TW_MR_SLA_ACK)
         return 0;
 
-    // Dont send ACK when reading last byte
+    // Bei nur einem Byte NACK senden
     if (len > 1)
         TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
 
-    // Read bytes
+    // Bytes lesen
     while (len > 1)
     {
         while (!(TWCR & _BV(TWINT)))
@@ -48,52 +74,96 @@ uint8_t i2c_read(uint8_t address, uint8_t len, uint8_t *data)
         if ((TWSR & 0xF8) != TW_MR_DATA_ACK)
             return 0;
         data[--len] = TWDR;
+        // Wenn noch Bytes zu lesen ACK senden
         if (len)
             TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN);
     }
 
-    // Read last byte
+    // Letztes Byte lesen
     TWCR = _BV(TWINT) | _BV(TWEN);
     while (!(TWCR & _BV(TWINT)))
         ;
     if ((TWSR & 0xF8) != TW_MR_DATA_NACK)
         return 0;
     data[0] = TWDR;
+
+    // I2C-Transaktion beenden
+    //TOOD:TWEN benoetigt?
     TWCR = _BV(TWINT) | _BV(TWSTO);
 
     return 1;
 }
 
-uint8_t i2c_begin_write(uint8_t address)
+/**
+ * Uebertraegt ein Byte
+ * @param data Datenbyte
+ * @return Bei Erfolg 1, sonst 0
+ **/
+uint8_t i2c_write(uint8_t data)
 {
-    TWCR = _BV(TWINT) | _BV(TWSTA) | _BV(TWEN);
+    // Daten in Register laden und senden
+    TWDR = data;
+    TWCR = _BV(TWINT) | _BV(TWEN);
+    // Auf Abschluss warten
     while (!(TWCR & _BV(TWINT)))
         ;
-    if ((TWSR & 0xF8) != TW_START)
+    // Auf Erfolg pruefen
+    if ((TWSR & 0xF8) != TW_MT_DATA_ACK)
         return 0;
 
-    TWDR = address << 1;
-    TWCR = _BV(TWINT) | _BV(TWEN);
-    while (!(TWCR & _BV(TWINT)))
-        ;
-    if ((TWSR & 0xF8) != TW_MT_SLA_ACK)
-        return 0;
     return 1;
 }
 
-uint8_t i2c_read_register(uint8_t address, uint8_t reg, uint8_t len, uint8_t *data)
+/**
+ * Beendet I2C-Transaktion
+ **/
+void i2c_end(void)
 {
-    i2c_begin_write(address);
-    i2c_write(reg);
-    i2c_end();
-
-    i2c_read(address, len, data);
+    TWCR = _BV(TWINT) | _BV(TWEN) | _BV(TWSTO);
 }
 
-uint8_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *data)
+/**
+ * @param address I2C-Zieladresse
+ * @param reg Registeradresse
+ * @param data Zu schreibende Daten
+ * @return Bei Erfolg 1, sonst 0
+ **/
+uint8_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t data)
 {
-    i2c_begin_write(address);
-    i2c_write(reg);
-    i2c_write(data);
+    if (!i2c_begin_write(address))
+        return 0;
+
+    // Registeradresse schreiben
+    if (!i2c_write(reg))
+        return 0;
+
+    // Daten in Register schreiben
+    if (!i2c_write(data))
+        return 0;
+
     i2c_end();
+
+    return 1;
+}
+
+/**
+ * Liest gegebene Anzahl von Bytes von I2C-Ziel aus Registern auf diesem
+ * @param address I2C-Zieladresse
+ * @param reg Registeradresse
+ * @param len Anzahl zu lesender Bytes
+ * @param data Array fuer gelesene Daten
+ * @return Bei Erfolg 1, sonst 0
+ **/
+uint8_t i2c_read_register(uint8_t address, uint8_t reg, uint8_t len, uint8_t *data)
+{
+    if (!i2c_begin_write(address))
+        return 0;
+
+    // Registeradresse schreiben
+    if (!i2c_write(reg))
+        return 0;
+
+    i2c_end();
+
+    return i2c_read(address, len, data);
 }

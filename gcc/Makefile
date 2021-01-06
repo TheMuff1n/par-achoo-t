@@ -4,10 +4,12 @@ main.o
 
 # Objektdateien fuer Tests
 _TOBJS +=  \
+test/test_utils.o  \
 test/test.o  \
 main/bt_driver.o  \
 main/i2c_driver.o  \
-main/mpu_driver.o
+main/mpu_driver.o  \
+main/baro_driver.o
 
 ################################################################################
 # Automatically-generated file. Do not edit!
@@ -123,7 +125,7 @@ $(TOUTPUT_FILE_PATH): $(TOBJS)
 	$(QUOTE)avr-gcc$(QUOTE) -x c -DF_CPU=16000000 -DDEBUG -Os -ffunction-sections -g3 -Wall -c -std=gnu99 \
 -mmcu=atmega328p -B "$(MAKEFILE_DIR)../gcc/dev/atmega328p" \
     -D__mega328P__ \
--I"../" -I"../src/main"  \
+-I"../" -I"../src/main" -I"../src/test"  \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 
 	@echo Finished building: $<

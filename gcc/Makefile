@@ -9,7 +9,8 @@ test/test.o  \
 main/bt_driver.o  \
 main/i2c_driver.o  \
 main/mpu_driver.o  \
-main/baro_driver.o
+main/baro_driver.o  \
+main/servo_driver.o
 
 ################################################################################
 # Automatically-generated file. Do not edit!

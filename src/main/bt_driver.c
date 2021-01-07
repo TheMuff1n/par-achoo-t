@@ -115,7 +115,7 @@ ISR(USART_RX_vect)
 }
 
 // Timer-Overflow Interrupt
-ISR(TIMER2_OVF_vect)
+ISR(TIMER0_OVF_vect)
 {
     // Wenn timeout erreicht (pro Interrupt ca. 16ms)
     if (timeout++ > (BT_TIMEOUT - 2))
@@ -125,5 +125,6 @@ ISR(TIMER2_OVF_vect)
             ridx = 0;
         // Timer stoppen
         TCCR0B = 0;
+        timeout = 0;
     }
 }

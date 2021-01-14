@@ -2,9 +2,9 @@
 #define TEST_UTILS_H_
 
 #include <avr/io.h>
-
 void long_to_str(int32_t i, uint8_t *str);
 void int_to_str(int16_t i, uint8_t *str);
+void bt_debug(int32_t val, uint8_t dchar);
 
 #ifdef DEBUG
 #define BT_DEBUG(val, dchar) bt_debug(val, dchar)

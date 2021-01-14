@@ -1,6 +1,12 @@
 # Objektdateien fuer das Hauptprogramm
 _OBJS +=  \
-main.o
+main.o  \
+timer_driver.o  \
+i2c_driver.o  \
+baro_driver.o  \
+servo_driver.o  \
+bt_driver.o  \
+../test/test_utils.o
 
 # Objektdateien fuer Tests
 _TOBJS +=  \
@@ -10,7 +16,8 @@ main/bt_driver.o  \
 main/i2c_driver.o  \
 main/mpu_driver.o  \
 main/baro_driver.o  \
-main/servo_driver.o
+main/servo_driver.o  \
+main/timer_driver.o
 
 ################################################################################
 # Automatically-generated file. Do not edit!

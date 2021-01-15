@@ -8,8 +8,8 @@
 #define BAUD 9600
 #define MYUBRR (FOSC / 16 / BAUD - 1)
 
-#define BT_SMSG_LEN 12
-#define BT_RMSG_LEN 1
+#define BT_SMSG_LEN 2
+#define BT_RMSG_LEN 2
 #define BT_TIMEOUT 6
 
 void bt_init(void);

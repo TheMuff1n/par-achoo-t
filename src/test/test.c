@@ -12,46 +12,50 @@ int32_t temp, pres;
 
 int main(void)
 {
-    /* Testprogramm */
-    bt_init();
-    // mpu_init();
-    baro_init();
-    servo_init();
-    timer_init();
+    // /* Testprogramm */
+    // bt_init();
+    // // mpu_init();
+    // baro_init();
+    // servo_init();
+    // timer_init();
 
-    servo_set_deg(0);
+    // servo_set_deg(0);
 
-    DDRB |= _BV(PB5);
-    PORTB &= ~_BV(PB5);
+    // DDRB |= _BV(PB5);
+    // PORTB &= ~_BV(PB5);
 
-    sei();
+    // sei();
 
+    // while (1)
+    // {
+    //     if (!timer_value(0))
+    //     {
+    //         // if (bt_get(rmsg))
+    //         //     servo_set_deg(rmsg[0]);
+
+    //         // if (!baro_temp(&temp))
+    //         //     PORTB |= _BV(PB5);
+
+    //         // long_to_str(temp, smsg);
+    //         // smsg[BT_SMSG_LEN - 1] = ' ';
+    //         // while (!(bt_send(smsg)))
+    //         //     ;
+
+    //         // if (!baro_pres(&pres, 1))
+    //         //     PORTB |= _BV(PB5);
+
+    //         // long_to_str(pres, smsg);
+    //         // smsg[BT_SMSG_LEN - 1] = '\n';
+    //         // while (!bt_send(smsg))
+    //         //     ;
+
+    //         PORTB ^= _BV(PB5);
+
+    //         timer_start(0, 1000);
+    //     }
+    // }
+    DDRB = _BV(PB5);
+    PORTB = _BV(PB5);
     while (1)
-    {
-        if (!timer_value(0))
-        {
-            // if (bt_get(rmsg))
-            //     servo_set_deg(rmsg[0]);
-
-            // if (!baro_temp(&temp))
-            //     PORTB |= _BV(PB5);
-
-            // long_to_str(temp, smsg);
-            // smsg[BT_SMSG_LEN - 1] = ' ';
-            // while (!(bt_send(smsg)))
-            //     ;
-
-            // if (!baro_pres(&pres, 1))
-            //     PORTB |= _BV(PB5);
-
-            // long_to_str(pres, smsg);
-            // smsg[BT_SMSG_LEN - 1] = '\n';
-            // while (!bt_send(smsg))
-            //     ;
-
-            PORTB ^= _BV(PB5);
-
-            timer_start(0, 1000);
-        }
-    }
+        ;
 }

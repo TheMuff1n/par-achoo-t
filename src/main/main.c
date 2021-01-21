@@ -75,10 +75,11 @@ void baro_calc_diff(void)
 
 void bt_send_block(uint16_t val)
 {
-	smsg[0] = (uint8_t)val >> 8;
-	smsg[1] = (uint8_t)val;
+	uint8_t bmsg[2];
+	bmsg[0] = (uint8_t)val;
+	bmsg[1] = (uint8_t)(val >> 8);
 
-	while (!bt_send(smsg))
+	while (!(bt_send(bmsg)))
 		;
 }
 
@@ -110,13 +111,13 @@ void test_zero(void)
 
 void verify_staging(void)
 {
-	bt_send_block(threshold_ascent | tr_ascent);
-	bt_send_block(threshold_apex | tr_apex);
-	bt_send_block(threshold_landed | tr_landed);
-	bt_send_block(servo_close | sv_close);
-	bt_send_block(servo_release | sv_release);
-	bt_send_block(baro_oss | br_oss);
-	bt_send_block(baro_delay | br_delay);
+	bt_send_block(threshold_ascent << 4 | tr_ascent);
+	bt_send_block(threshold_apex << 4 | tr_apex);
+	bt_send_block(threshold_landed << 4 | tr_landed);
+	bt_send_block(servo_close << 4 | sv_close);
+	bt_send_block(servo_release << 4 | sv_release);
+	bt_send_block(baro_oss << 4 | br_oss);
+	bt_send_block(baro_delay << 4 | br_delay);
 }
 
 void handle_staging(void)
@@ -125,11 +126,14 @@ void handle_staging(void)
 		return;
 
 	action = rmsg[0] & 0x0f;
-	sdata = ((uint16_t)rmsg[1] << 4) | rmsg[0] >> 4;
+	// bt_send_block((uint16_t)action);
+	sdata = ((uint16_t)rmsg[1]) << 4 | rmsg[0] >> 4;
+	// bt_send_block(sdata);
 
 	switch (action)
 	{
 	case tr_ascent:
+		PORTB |= _BV(PB5);
 		threshold_ascent = sdata;
 		break;
 	case tr_apex:
@@ -204,7 +208,12 @@ int main(void)
 	servo_set_deg(servo_close);
 	state = staging;
 
+	DDRB |= _BV(PB5);
+	PORTB &= ~_BV(PB5);
+	PORTB |= _BV(PB5);
+
 	sei();
+	verify_staging();
 
 	while (1)
 	{

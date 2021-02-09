@@ -2,3 +2,4 @@
 AtmelStart.*
 AtmelTest.*
 gcc/src/
+node_modules/

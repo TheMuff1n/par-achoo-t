@@ -62,7 +62,7 @@ void test_release(void)
 
 void baro_calc_diff(void)
 {
-	if (!baro_pres(pres + pres_idx, 1))
+	if (!baro_pres(pres + pres_idx, baro_oss))
 		ERROR();
 
 	if (pres_idx)
@@ -86,7 +86,7 @@ void bt_send_block(uint16_t val)
 void test_zero(void)
 {
 	uint8_t cnt = 20;
-	uint16_t zero = 0;
+	int16_t zero = 0;
 
 	while (cnt)
 	{
@@ -104,9 +104,7 @@ void test_zero(void)
 		timer_start(1, baro_delay);
 	}
 
-	zero /= 20;
-
-	bt_send_block(zero | ts_zero);
+	bt_send_block((uint16_t)zero);
 }
 
 void verify_staging(void)
@@ -126,14 +124,11 @@ void handle_staging(void)
 		return;
 
 	action = rmsg[0] & 0x0f;
-	// bt_send_block((uint16_t)action);
 	sdata = ((uint16_t)rmsg[1]) << 4 | rmsg[0] >> 4;
-	// bt_send_block(sdata);
 
 	switch (action)
 	{
 	case tr_ascent:
-		PORTB |= _BV(PB5);
 		threshold_ascent = sdata;
 		break;
 	case tr_apex:
@@ -165,6 +160,7 @@ void handle_staging(void)
 		break;
 	case complete:
 		state = ready;
+		PORTB |= _BV(PB5);
 		break;
 	}
 }
@@ -179,11 +175,11 @@ void handle_baro(void)
 	switch (state)
 	{
 	case ready:
-		if (diff < -threshold_ascent)
+		if (diff < -(int16_t)threshold_ascent)
 			state = ascent;
 		break;
 	case ascent:
-		if (diff > -threshold_apex)
+		if (diff > -(int16_t)threshold_apex)
 			state = apex;
 		break;
 	case descent:
@@ -208,12 +204,7 @@ int main(void)
 	servo_set_deg(servo_close);
 	state = staging;
 
-	DDRB |= _BV(PB5);
-	PORTB &= ~_BV(PB5);
-	PORTB |= _BV(PB5);
-
 	sei();
-	verify_staging();
 
 	while (1)
 	{
